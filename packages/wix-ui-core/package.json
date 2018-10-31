@@ -52,7 +52,7 @@
     "hoist-non-react-methods": "^1.1.0",
     "load-script": "^1.0.0",
     "lodash": "^4.17.5",
-    "playable": "1.13.0",
+    "playable": "^2.2.0",
     "popper.js": "1.14.3",
     "react-onclickoutside": "^6.7.0",
     "react-popper": "0.10.1",

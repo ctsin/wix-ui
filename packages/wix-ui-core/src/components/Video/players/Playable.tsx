@@ -43,28 +43,35 @@ const mapPropsToPlayer: IPropsToPlayer = {
       player.pause();
     }
   },
-  muted: 'setMute',
+  muted: (instance, player, nextMuted) => {
+    if (nextMuted) {
+      player.mute();
+    } else {
+      player.unmute();
+    }
+  },
   volume: 'setVolume',
   title: 'setTitle',
   loop: 'setLoop',
   logoUrl: 'setLogo',
-  alwaysShowLogo: 'setLogoAlwaysShowFlag',
+  alwaysShowLogo: 'setAlwaysShowLogo',
   onLogoClick: 'setLogoClickCallback',
   preload: 'setPreload',
+  controls: 'setMainUIShouldAlwaysShow',
 };
 
 const mapMethodsToPlayer: IMethodsToPlayer = {
   play: 'play',
   pause: 'pause',
   stop: 'reset',
-  getDuration: 'getDurationTime',
+  getDuration: 'getDuration',
   getCurrentTime: 'getCurrentTime',
-  seekTo: 'goTo',
+  seekTo: 'seekTo',
   getVolume: 'getVolume',
   setVolume: 'setVolume',
-  isMuted: 'getMute', // 2.0 -> isMuted
-  mute: (instance, player) => player.setMute(true),
-  unMute: (instance, player) => player.setMute(false),
+  isMuted: 'isMuted',
+  mute: 'mute',
+  unMute: 'unmute',
 };
 
 interface IPlayableProps extends ICommonProps, IPlayableConfig {}
@@ -101,45 +108,38 @@ class PlayablePlayer extends React.PureComponent<IPlayableProps, IPlayableState>
       src, playing, muted, title, showTitle, loop, volume, controls, preload,
       onReady, onDuration, onProgress, logoUrl, onLogoClick, alwaysShowLogo,
     } = this.props;
-    let logo;
-
-    if (logoUrl || onLogoClick || alwaysShowLogo) {
-      logo = {
-        src: logoUrl,
-        callback: onLogoClick,
-        showAlways: alwaysShowLogo,
-      };
-    }
 
     this.player = create({
       src,
-      autoPlay: !!playing,
-      playInline: true,
+      autoplay: !!playing,
+      playsinline: true,
       muted,
-      size: {
-        width: '100%',
-        height: '100%',
-      },
-      title: {
-        text: showTitle ? title : '',
-      },
-      controls,
+      // width: '100%',
+      // height: '100%',
+      fillAllSpace: true,
+      title: showTitle ? title : '',
       preload,
-      logo,
       loop,
       volume,
-      overlay: false
+      hideOverlay: true,
     });
 
+    if (logoUrl || onLogoClick || alwaysShowLogo) {
+      this.player.setLogo(logoUrl);
+      this.player.setAlwaysShowLogo(alwaysShowLogo);
+      this.player.setLogoClickCallback(onLogoClick);
+    }
+
+    this.player.setMainUIShouldAlwaysShow(controls);
     this.player.attachToElement(this.containerRef.current);
 
-    this.player.on(VIDEO_EVENTS.PLAY_REQUEST_TRIGGERED, () => {
+    this.player.on(VIDEO_EVENTS.PLAY_REQUEST, () => {
       this.setState({hasBeenPlayed: true});
     });
 
     this.player.on(ENGINE_STATES.METADATA_LOADED, () => {
       onReady();
-      onDuration(this.player.getDurationTime());
+      onDuration(this.player.getDuration());
     });
 
     this.player.on(ENGINE_STATES.PLAYING, () => {

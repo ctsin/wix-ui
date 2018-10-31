@@ -106,8 +106,10 @@ export interface IDailyMotionPlayerAPI {
   setCurrentTime(amount: number): void;
   setVolume(fraction: number): void;
   setMuted(muted: boolean): void;
-  currentTime(): number;
-  duration(): number;
+  currentTime: number;
+  duration: number;
+  volume: number;
+  muted: boolean;
 }
 
 export interface IFacebookPlayerAPI {
@@ -119,7 +121,7 @@ export interface IFacebookPlayerAPI {
   getDuration(): number;
   mute(): void;
   unmute(): void;
-  destroy(): void;
+  isMuted(): boolean;
   subscribe(event: string, fn?: Function): void;
 }
 
@@ -127,11 +129,17 @@ export interface IPlayablePlayerAPI {
   play(): void;
   pause(): void;
   reset(): void;
-  goTo(amount: number): void;
+  seekTo(amount: number): void;
   setVolume(fraction: number): void;
   getCurrentTime(): number;
-  getDurationTime(): number;
-  setMute(mute: boolean): void;
+  getDuration(): number;
+  mute(): void;
+  unmute(): void;
+  isMuted(): boolean;
+  setLogo(url: string): void;
+  setAlwaysShowLogo(show: boolean): void;
+  setLogoClickCallback(cb: Function): void;
+  setMainUIShouldAlwaysShow(show: boolean): void;
   destroy(): void;
   on(event: string, fn?: Function): void;
   attachToElement(el: HTMLDivElement): void;
@@ -143,6 +151,7 @@ export interface ITwitchPlayerAPI {
   setCurrentTime(amount: number): void;
   setVolume(fraction: number): void;
   setMuted(muted: boolean): void;
+  getMuted(): boolean;
   getCurrentTime(): number;
   getDuration(): number;
   destroy(): void;
@@ -172,6 +181,7 @@ export interface IYoutubePlayerAPI {
   getDuration(): number;
   mute(): void;
   unMute(): void;
+  isMuted(): boolean;
   destroy(): void;
   on(event: string, fn?: Function): void;
 }

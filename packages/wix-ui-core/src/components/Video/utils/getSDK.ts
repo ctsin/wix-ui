@@ -43,7 +43,6 @@ export function getSDK(
       }
       if (!sdkReady) {
 
-        // @TODO
         // @ts-ignore
         if (!window[sdkGlobal] && "function" === typeof define && define.amd) {
           // @ts-ignore
