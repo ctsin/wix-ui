@@ -82,6 +82,7 @@ export interface IPropsToPlayer {
   alwaysShowLogo?: string | Function;
   onLogoClick?: string | Function;
   preload?: string | Function;
+  showTitle?: string | Function;
 }
 
 export interface IMethodsToPlayer {
@@ -139,7 +140,18 @@ export interface IPlayablePlayerAPI {
   setLogo(url: string): void;
   setAlwaysShowLogo(show: boolean): void;
   setLogoClickCallback(cb: Function): void;
-  setMainUIShouldAlwaysShow(show: boolean): void;
+  showPlayControl(): void;
+  showVolumeControl(): void;
+  showTimeControl(): void;
+  showFullScreenControl(): void;
+  showProgressControl(): void;
+  showTitle(): void;
+  hidePlayControl(): void;
+  hideVolumeControl(): void;
+  hideTimeControl(): void;
+  hideFullScreenControl(): void;
+  hideProgressControl(): void;
+  hideTitle(): void;
   destroy(): void;
   on(event: string, fn?: Function): void;
   attachToElement(el: HTMLDivElement): void;

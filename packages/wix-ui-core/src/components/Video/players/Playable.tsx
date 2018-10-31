@@ -57,7 +57,28 @@ const mapPropsToPlayer: IPropsToPlayer = {
   alwaysShowLogo: 'setAlwaysShowLogo',
   onLogoClick: 'setLogoClickCallback',
   preload: 'setPreload',
-  controls: 'setMainUIShouldAlwaysShow',
+  showTitle: (instance, player, isShowTitle) => {
+    if (isShowTitle) {
+      player.showTitle();
+    } else {
+      player.hideTitle();
+    }
+  },
+  controls: (instance, player, isShowControls) => {
+    if (isShowControls) {
+      player.showPlayControl();
+      player.showVolumeControl();
+      player.showTimeControl();
+      player.showFullScreenControl();
+      player.showProgressControl();
+    } else {
+      player.hidePlayControl();
+      player.hideVolumeControl();
+      player.hideTimeControl();
+      player.hideFullScreenControl();
+      player.hideProgressControl();
+    }
+  },
 };
 
 const mapMethodsToPlayer: IMethodsToPlayer = {
@@ -83,10 +104,8 @@ interface IPlayableState {
 class PlayablePlayer extends React.PureComponent<IPlayableProps, IPlayableState> {
   static displayName = 'Playable';
   static defaultProps = {
-    logoUrl: '',
     poster: '',
     playButton: null,
-    onLogoClick: noop,
   };
 
   state: IPlayableState = {
@@ -114,15 +133,27 @@ class PlayablePlayer extends React.PureComponent<IPlayableProps, IPlayableState>
       autoplay: !!playing,
       playsinline: true,
       muted,
-      // width: '100%',
-      // height: '100%',
+      width: '100%',
+      height: '100%',
       fillAllSpace: true,
-      title: showTitle ? title : '',
+      title,
       preload,
       loop,
       volume,
       hideOverlay: true,
     });
+
+    if (!controls) {
+      this.player.hidePlayControl();
+      this.player.hideVolumeControl();
+      this.player.hideTimeControl();
+      this.player.hideFullScreenControl();
+      this.player.hideProgressControl();
+    }
+
+    if (!showTitle) {
+      this.player.hideTitle();
+    }
 
     if (logoUrl || onLogoClick || alwaysShowLogo) {
       this.player.setLogo(logoUrl);
@@ -130,7 +161,6 @@ class PlayablePlayer extends React.PureComponent<IPlayableProps, IPlayableState>
       this.player.setLogoClickCallback(onLogoClick);
     }
 
-    this.player.setMainUIShouldAlwaysShow(controls);
     this.player.attachToElement(this.containerRef.current);
 
     this.player.on(VIDEO_EVENTS.PLAY_REQUEST, () => {
