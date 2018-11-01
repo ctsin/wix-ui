@@ -25,6 +25,7 @@ export const createDriver = (Component: React.ReactElement<IVideoProps>) => {
 
     hasCover: () => wrapper.find('[data-hook="cover"]').length === 1,
     hasTitle: () => wrapper.find('[data-hook="title"]').length === 1,
+    getTitle: () => wrapper.find('[data-hook="title"]').text(),
     getLogoSrc: () => rootDOMNode.querySelector('[data-hook="company-logo"]').getAttribute('src'),
     clickLogo: () => {
       const event = new MouseEvent('click', {bubbles: true});

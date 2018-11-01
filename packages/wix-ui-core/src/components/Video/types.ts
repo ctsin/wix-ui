@@ -136,7 +136,7 @@ export interface IPlayablePlayerAPI {
   getDuration(): number;
   mute(): void;
   unmute(): void;
-  isMuted(): boolean;
+  isMuted: boolean;
   setLogo(url: string): void;
   setAlwaysShowLogo(show: boolean): void;
   setLogoClickCallback(cb: Function): void;

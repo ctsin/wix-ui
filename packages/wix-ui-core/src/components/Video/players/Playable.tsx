@@ -91,7 +91,7 @@ const mapMethodsToPlayer: IMethodsToPlayer = {
   seekTo: 'seekTo',
   getVolume: 'getVolume',
   setVolume: 'setVolume',
-  isMuted: 'isMuted',
+  isMuted: (instance, player) => player.isMuted,
   mute: 'mute',
   unMute: 'unmute',
 };
