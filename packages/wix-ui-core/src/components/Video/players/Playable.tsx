@@ -17,6 +17,7 @@ import {
   IPlayableConfig,
 } from '../types';
 import styles from '../Video.st.css';
+import {getSDK} from "../utils";
 
 const MATCH_URL = /\.(mp4|og[gv]|webm|mov|m4v)($|\?)/i;
 
@@ -123,6 +124,17 @@ class PlayablePlayer extends React.PureComponent<IPlayableProps, IPlayableState>
   }
 
   componentDidMount() {
+    this.initPlayer();
+  }
+
+  componentWillUnmount() {
+    if (this.player) {
+      this.player.destroy();
+    }
+    this.eventEmitter.removeAllListeners();
+  }
+
+  initPlayer() {
     const {
       src, playing, muted, title, showTitle, loop, volume, controls, preload,
       onReady, onDuration, onProgress, logoUrl, onLogoClick, alwaysShowLogo,
@@ -189,13 +201,6 @@ class PlayablePlayer extends React.PureComponent<IPlayableProps, IPlayableState>
     this.player.on(VIDEO_EVENTS.CURRENT_TIME_UPDATED, currentTime => {
       onProgress(currentTime);
     });
-  }
-
-  componentWillUnmount() {
-    if (this.player) {
-      this.player.destroy();
-    }
-    this.eventEmitter.removeAllListeners();
   }
 
   onPlayClick = (): void => {

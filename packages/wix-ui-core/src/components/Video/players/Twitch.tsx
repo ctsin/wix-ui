@@ -70,60 +70,59 @@ class TwitchPlayer extends React.PureComponent<ITwitchProps> {
   }
 
   componentDidMount() {
-    const {playing, muted, playerOptions, onReady, onError} = this.props;
-    const src = this.props.src as string;
-    const isChannel = MATCH_CHANNEL_URL.test(src);
-    const id = isChannel ? src.match(MATCH_CHANNEL_URL)[1] : src.match(MATCH_VIDEO_URL)[1];
-
-    getSDK(
-      SDK_URL,
-      SDK_GLOBAL,
-    ).then(Twitch => {
-      const { READY, PLAY, PAUSE, ENDED } = Twitch.Player;
-
-      this.player = new Twitch.Player(this.playerID, {
-        video: isChannel ? '' : id,
-        channel: isChannel ? id : '',
-        height: '100%',
-        width: '100%',
-        playsinline: true,
-        autoplay: playing,
-        muted,
-        ...playerOptions
-      });
-
-      this.player.addEventListener(READY, () => {
-        this.awaitDuration();
-        onReady();
-      });
-
-      this.player.addEventListener(PLAY, () => {
-        this.eventEmitter.emit(EVENTS.PLAYING);
-        this.progress();
-      });
-
-      this.player.addEventListener(PAUSE, () => {
-        this.eventEmitter.emit(EVENTS.PAUSED);
-        this.stopProgress();
-      });
-
-      this.player.addEventListener(ENDED, () => {
-        this.eventEmitter.emit(EVENTS.ENDED);
-        this.stopProgress();
-      });
-
-    }).catch(error => {
-      onError(error);
-    })
+    getSDK(SDK_URL, SDK_GLOBAL)
+      .then(this.initPlayer)
+      .catch(error => {
+        this.props.onError(error);
+      })
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     if (this.player) {
       this.player.destroy();
     }
     this.eventEmitter.removeAllListeners();
     this.stopProgress();
     this.stopAwaitDuration();
+  }
+
+  initPlayer = Twitch => {
+    const {playing, muted, playerOptions, onReady} = this.props;
+    const src = this.props.src as string;
+    const isChannel = MATCH_CHANNEL_URL.test(src);
+    const id = isChannel ? src.match(MATCH_CHANNEL_URL)[1] : src.match(MATCH_VIDEO_URL)[1];
+    const { READY, PLAY, PAUSE, ENDED } = Twitch.Player;
+
+    this.player = new Twitch.Player(this.playerID, {
+      video: isChannel ? '' : id,
+      channel: isChannel ? id : '',
+      height: '100%',
+      width: '100%',
+      playsinline: true,
+      autoplay: playing,
+      muted,
+      ...playerOptions
+    });
+
+    this.player.addEventListener(READY, () => {
+      this.awaitDuration();
+      onReady();
+    });
+
+    this.player.addEventListener(PLAY, () => {
+      this.eventEmitter.emit(EVENTS.PLAYING);
+      this.progress();
+    });
+
+    this.player.addEventListener(PAUSE, () => {
+      this.eventEmitter.emit(EVENTS.PAUSED);
+      this.stopProgress();
+    });
+
+    this.player.addEventListener(ENDED, () => {
+      this.eventEmitter.emit(EVENTS.ENDED);
+      this.stopProgress();
+    });
   }
 
   awaitDuration = () => {

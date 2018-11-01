@@ -19,7 +19,7 @@ import styles from '../Video.st.css';
 
 const SDK_URL = '//connect.facebook.net/en_US/sdk.js';
 const SDK_GLOBAL = 'FB';
-const SDK_GLOBAL_READY = 'fbAsyncInit';
+const SDK_READY = 'fbAsyncInit';
 const MATCH_URL = /facebook\.com\/([^/?].+\/)?video(s|\.php)[/?].*$/;
 
 export const verifier: VerifierType = url => isString(url) && MATCH_URL.test(url);
@@ -76,58 +76,57 @@ class YouTubePlayer extends React.PureComponent<IFacebookProps> {
   }
 
   componentDidMount() {
-    const {appId, muted, onReady, onError} = this.props;
-
-    getSDK(
-      SDK_URL,
-      SDK_GLOBAL,
-      SDK_GLOBAL_READY
-    ).then(FB => {
-      FB.init({
-        appId,
-        xfbml: true,
-        version: 'v2.5'
-      });
-
-      FB.Event.subscribe('xfbml.ready', msg => {
-        if (msg.type === 'video' && msg.id === this.playerID) {
-          this.player = msg.instance;
-
-          this.player.subscribe('startedPlaying', () => {
-            this.eventEmitter.emit(EVENTS.PLAYING);
-            this.progress();
-          });
-
-          this.player.subscribe('paused', () => {
-            this.eventEmitter.emit(EVENTS.PAUSED);
-            this.stopProgress();
-          });
-
-          this.player.subscribe('finishedPlaying', () => {
-            this.eventEmitter.emit(EVENTS.ENDED);
-            this.stopProgress();
-          });
-
-          this.player.subscribe('error', onError);
-
-          if (!muted) {
-            this.player.unmute();
-          }
-
-          this.awaitDuration();
-          onReady();
-        }
+    getSDK(SDK_URL, SDK_GLOBAL, SDK_READY)
+      .then(this.initPlayer)
+      .catch(error => {
+        this.props.onError(error);
       })
-
-    }).catch(error => {
-      onError(error);
-    })
   }
 
   componentWillUnmount() {
     this.eventEmitter.removeAllListeners();
     this.stopAwaitDuration();
     this.stopProgress();
+  }
+
+  initPlayer = FB => {
+    const {appId, muted, onReady, onError} = this.props;
+
+    FB.init({
+      appId,
+      xfbml: true,
+      version: 'v2.5'
+    });
+
+    FB.Event.subscribe('xfbml.ready', msg => {
+      if (msg.type === 'video' && msg.id === this.playerID) {
+        this.player = msg.instance;
+
+        this.player.subscribe('startedPlaying', () => {
+          this.eventEmitter.emit(EVENTS.PLAYING);
+          this.progress();
+        });
+
+        this.player.subscribe('paused', () => {
+          this.eventEmitter.emit(EVENTS.PAUSED);
+          this.stopProgress();
+        });
+
+        this.player.subscribe('finishedPlaying', () => {
+          this.eventEmitter.emit(EVENTS.ENDED);
+          this.stopProgress();
+        });
+
+        this.player.subscribe('error', onError);
+
+        if (!muted) {
+          this.player.unmute();
+        }
+
+        this.awaitDuration();
+        onReady();
+      }
+    })
   }
 
   awaitDuration = () => {

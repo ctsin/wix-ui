@@ -76,60 +76,11 @@ class VimeoPlayer extends React.PureComponent<IVimeoProps> {
   }
 
   componentDidMount() {
-    const {
-      src, playing, muted, loop, showTitle, playerOptions,
-      onReady, onDuration, onProgress, onError
-    } = this.props;
-
-    getSDK(
-      SDK_URL,
-      SDK_GLOBAL,
-    ).then(Vimeo => {
-
-      this.player = new Vimeo.Player(this.containerRef.current, {
-        url: src,
-        autoplay: playing,
-        muted,
-        loop,
-        title: showTitle,
-        ...playerOptions,
-      });
-
-      this.player.ready().then(() => {
-        onReady();
-
-        this.player.getDuration().then(duration => {
-          this.duration = duration;
-          onDuration(duration);
-        })
-      });
-
-      this.player.on('play', () => {
-        this.eventEmitter.emit(EVENTS.PLAYING);
-      });
-
-      this.player.on('pause', () => {
-        this.eventEmitter.emit(EVENTS.PAUSED);
-      });
-
-      this.player.on('ended', () => {
-        this.eventEmitter.emit(EVENTS.ENDED);
-      });
-
-      this.player.on('error', onError);
-
-      this.player.on('volumechange', ({volume}) => {
-        this.volume = volume * 100;
-      });
-
-      this.player.on('timeupdate', ({seconds}) => {
-        this.currentTime = seconds;
-        onProgress(seconds);
-      });
-
-    }).catch(error => {
-      onError(error);
-    })
+    getSDK(SDK_URL, SDK_GLOBAL)
+      .then(this.initPlayer)
+      .catch(error => {
+        this.props.onError(error);
+      })
   }
 
   componentWillUnmount () {
@@ -137,6 +88,54 @@ class VimeoPlayer extends React.PureComponent<IVimeoProps> {
       this.player.destroy();
     }
     this.eventEmitter.removeAllListeners();
+  }
+
+  initPlayer = Vimeo => {
+    const {
+      src, playing, muted, loop, showTitle, playerOptions,
+      onReady, onDuration, onProgress, onError
+    } = this.props;
+
+    this.player = new Vimeo.Player(this.containerRef.current, {
+      url: src,
+      autoplay: playing,
+      muted,
+      loop,
+      title: showTitle,
+      ...playerOptions,
+    });
+
+    this.player.ready().then(() => {
+      onReady();
+
+      this.player.getDuration().then(duration => {
+        this.duration = duration;
+        onDuration(duration);
+      })
+    });
+
+    this.player.on('play', () => {
+      this.eventEmitter.emit(EVENTS.PLAYING);
+    });
+
+    this.player.on('pause', () => {
+      this.eventEmitter.emit(EVENTS.PAUSED);
+    });
+
+    this.player.on('ended', () => {
+      this.eventEmitter.emit(EVENTS.ENDED);
+    });
+
+    this.player.on('volumechange', ({volume}) => {
+      this.volume = volume * 100;
+    });
+
+    this.player.on('timeupdate', ({seconds}) => {
+      this.currentTime = seconds;
+      onProgress(seconds);
+    });
+
+    this.player.on('error', onError);
   }
 
   render() {

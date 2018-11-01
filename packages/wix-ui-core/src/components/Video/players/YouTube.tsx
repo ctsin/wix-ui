@@ -18,7 +18,7 @@ import styles from '../Video.st.css';
 
 const SDK_URL = 'https://www.youtube.com/iframe_api';
 const SDK_GLOBAL = 'YT';
-const SDK_GLOBAL_READY = 'onYouTubeIframeAPIReady';
+const SDK_READY = 'onYouTubeIframeAPIReady';
 const MATCH_URL = /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})/;
 
 export const verifier: VerifierType = url => isString(url) && MATCH_URL.test(url);
@@ -75,45 +75,11 @@ class YouTubePlayer extends React.PureComponent<IYouTubeProps> {
   }
 
   componentDidMount() {
-    const {
-      playing, muted, controls, playerOptions,
-      onReady, onDuration, onError
-    } = this.props;
-    const src = this.props.src as string;
-    const videoId = src.match(MATCH_URL)[1];
-
-    getSDK(
-      SDK_URL,
-      SDK_GLOBAL,
-      SDK_GLOBAL_READY,
-      YT => !!YT.loaded
-    ).then(YT => {
-
-      this.player = new YT.Player(this.containerRef.current, {
-        width: '100%',
-        height: '100%',
-        videoId,
-        playerVars: {
-          autoplay: playing ? 1 : 0,
-          mute: muted ? 1 : 0,
-          controls: controls ? 1 : 0,
-          origin: window.location.origin,
-          playsinline: true,
-          ...playerOptions
-        },
-        events: {
-          onReady: () => {
-            onReady();
-            onDuration(this.player.getDuration());
-          },
-          onStateChange: this.onStateChange(YT.PlayerState),
-          onError,
-        }
-      });
-
-    }).catch(error => {
-      onError(error);
-    })
+    getSDK(SDK_URL, SDK_GLOBAL, SDK_READY, YT => !!YT.loaded)
+      .then(this.initPlayer)
+      .catch(error => {
+        this.props.onError(error);
+      })
   }
 
   componentWillUnmount () {
@@ -122,6 +88,37 @@ class YouTubePlayer extends React.PureComponent<IYouTubeProps> {
     }
     this.eventEmitter.removeAllListeners();
     this.stopProgress();
+  }
+
+  initPlayer = YT => {
+    const {
+      playing, muted, controls, playerOptions,
+      onReady, onDuration, onError
+    } = this.props;
+    const src = this.props.src as string;
+    const videoId = src.match(MATCH_URL)[1];
+
+    this.player = new YT.Player(this.containerRef.current, {
+      width: '100%',
+      height: '100%',
+      videoId,
+      playerVars: {
+        autoplay: playing ? 1 : 0,
+        mute: muted ? 1 : 0,
+        controls: controls ? 1 : 0,
+        origin: window.location.origin,
+        playsinline: true,
+        ...playerOptions
+      },
+      events: {
+        onReady: () => {
+          onReady();
+          onDuration(this.player.getDuration());
+        },
+        onStateChange: this.onStateChange(YT.PlayerState),
+        onError,
+      }
+    });
   }
 
   onStateChange = (PlayerState: any) => ({ data }): void => {

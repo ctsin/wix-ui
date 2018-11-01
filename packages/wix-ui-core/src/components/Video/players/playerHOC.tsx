@@ -101,7 +101,7 @@ export default function playerHOC(
       return this.ref.player;
     }
 
-    public play(): Promise<any> {
+    public play(): Promise<void> {
       const result = this._callPlayer(mapMethodsToPlayer.play);
 
       return (result instanceof Promise) ? result : new Promise(resolve => {
@@ -109,7 +109,7 @@ export default function playerHOC(
       });
     }
 
-    public pause(): Promise<any> {
+    public pause(): Promise<void> {
       const result = this._callPlayer(mapMethodsToPlayer.pause);
 
       return (result instanceof Promise) ? result : new Promise(resolve => {
@@ -117,7 +117,7 @@ export default function playerHOC(
       });
     }
 
-    public togglePlay(): Promise<any> {
+    public togglePlay(): Promise<void> {
       const method = this.isPlayingNow ? 'pause' : 'play';
       const event = this.isPlayingNow ? EVENTS.PAUSED : EVENTS.PLAYING;
       const result = this._callPlayer(mapMethodsToPlayer[method]);
@@ -127,7 +127,7 @@ export default function playerHOC(
       });
     }
 
-    public stop(): Promise<any> {
+    public stop(): Promise<void> {
       this._callPlayer(mapMethodsToPlayer.stop);
 
       return Promise.resolve();
@@ -147,7 +147,7 @@ export default function playerHOC(
       return Promise.resolve();
     }
 
-    public getVolume(): Promise<any> {
+    public getVolume(): Promise<void> {
       this._callPlayer(mapMethodsToPlayer.getVolume);
 
       return Promise.resolve();
@@ -165,13 +165,13 @@ export default function playerHOC(
       return this.isPlayingNow;
     }
 
-    public mute(): Promise<any> {
+    public mute(): Promise<void> {
       this._callPlayer(mapMethodsToPlayer.mute);
 
       return Promise.resolve();
     }
 
-    public unMute(): Promise<any> {
+    public unMute(): Promise<void> {
       this._callPlayer(mapMethodsToPlayer.unMute);
 
       return Promise.resolve();

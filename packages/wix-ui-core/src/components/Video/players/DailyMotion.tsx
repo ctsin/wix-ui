@@ -18,7 +18,7 @@ import styles from '../Video.st.css';
 
 const SDK_URL = 'https://api.dmcdn.net/all.js';
 const SDK_GLOBAL = 'DM';
-const SDK_GLOBAL_READY = 'dmAsyncInit';
+const SDK_READY = 'dmAsyncInit';
 const MATCH_URL = /^(?:(?:https?):)?(?:\/\/)?(?:www\.)?(?:(?:dailymotion\.com(?:\/embed)?\/video)|dai\.ly)\/([a-zA-Z0-9]+)(?:_[\w_-]+)?$/;
 
 export const verifier: VerifierType = url => isString(url) && MATCH_URL.test(url);
@@ -69,6 +69,19 @@ class DailyMotionPlayer extends React.PureComponent<IDailyMotionProps> {
   }
 
   componentDidMount() {
+    getSDK(SDK_URL, SDK_GLOBAL, SDK_READY, DM => DM.player)
+      .then(this.initPlayer)
+      .catch(error => {
+        this.props.onError(error);
+      })
+  }
+
+  componentWillUnmount() {
+    this.eventEmitter.removeAllListeners();
+    this.stopProgress();
+  }
+
+  initPlayer = DM => {
     const {
       playing, muted, controls, showTitle, playerOptions,
       onReady, onDuration, onError
@@ -76,56 +89,40 @@ class DailyMotionPlayer extends React.PureComponent<IDailyMotionProps> {
     const src = this.props.src as string;
     const [, id] = src.match(MATCH_URL);
 
-    getSDK(
-      SDK_URL,
-      SDK_GLOBAL,
-      SDK_GLOBAL_READY,
-      DM => DM.player
-    ).then(DM => {
-
-      this.player = new DM.player(this.containerRef.current, {
-        width: '100%',
-        height: '100%',
-        video: id,
-        params: {
-          controls,
-          autoplay: playing,
-          mute: muted,
-          'ui-start-screen-info': showTitle,
-          origin: window.location.origin,
-          ...playerOptions
+    this.player = new DM.player(this.containerRef.current, {
+      width: '100%',
+      height: '100%',
+      video: id,
+      params: {
+        controls,
+        autoplay: playing,
+        mute: muted,
+        'ui-start-screen-info': showTitle,
+        origin: window.location.origin,
+        ...playerOptions
+      },
+      events: {
+        apiready: () => {
+          onReady();
         },
-        events: {
-          apiready: () => {
-            onReady();
-          },
-          durationchange: () => {
-            onDuration(this.player.duration);
-          },
-          playing: () => {
-            this.eventEmitter.emit(EVENTS.PLAYING);
-            this.progress();
-          },
-          pause: () => {
-            this.eventEmitter.emit(EVENTS.PAUSED);
-            this.stopProgress();
-          },
-          video_end: () => {
-            this.eventEmitter.emit(EVENTS.ENDED);
-            this.stopProgress();
-          },
-          error: event => onError(event),
-        }
-      });
-
-    }).catch(error => {
-      onError(error);
-    })
-  }
-
-  componentWillUnmount() {
-    this.eventEmitter.removeAllListeners();
-    this.stopProgress();
+        durationchange: () => {
+          onDuration(this.player.duration);
+        },
+        playing: () => {
+          this.eventEmitter.emit(EVENTS.PLAYING);
+          this.progress();
+        },
+        pause: () => {
+          this.eventEmitter.emit(EVENTS.PAUSED);
+          this.stopProgress();
+        },
+        video_end: () => {
+          this.eventEmitter.emit(EVENTS.ENDED);
+          this.stopProgress();
+        },
+        error: event => onError(event),
+      }
+    });
   }
 
   progress = () => {
