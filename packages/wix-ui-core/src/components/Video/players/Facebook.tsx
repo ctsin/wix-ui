@@ -13,16 +13,21 @@ import {
   IMethodsToPlayer,
   VerifierType,
   IFacebookPlayerAPI,
-  IFacebookConfig
+  IFacebookConfig,
+  ISDKConfig
 } from '../types';
 import styles from '../Video.st.css';
 
-const SDK_URL = '//connect.facebook.net/en_US/sdk.js';
-const SDK_GLOBAL = 'FB';
-const SDK_READY = 'fbAsyncInit';
 const MATCH_URL = /facebook\.com\/([^/?].+\/)?video(s|\.php)[/?].*$/;
 
 export const verifier: VerifierType = url => isString(url) && MATCH_URL.test(url);
+
+const SDKConfig: ISDKConfig = {
+  name: 'FB',
+  url: '//connect.facebook.net/en_US/sdk.js',
+  onReady: 'fbAsyncInit',
+  isRequireAllow: false,
+};
 
 const mapPropsToPlayer: IPropsToPlayer = {
   src: instance => instance._reload(),
@@ -76,7 +81,7 @@ class YouTubePlayer extends React.PureComponent<IFacebookProps> {
   }
 
   componentDidMount() {
-    getSDK(SDK_URL, SDK_GLOBAL, SDK_READY)
+    getSDK(SDKConfig)
       .then(this.initPlayer)
       .catch(error => {
         this.props.onError(error);
@@ -166,7 +171,7 @@ class YouTubePlayer extends React.PureComponent<IFacebookProps> {
         id={this.playerID}
         data-href={src}
         data-autoplay={playing ? 'true' : 'false'}
-        data-allowfullscreen='true'
+        data-allowfullscreen="true"
         data-controls={controls ? 'true' : 'false'}
       />
     )

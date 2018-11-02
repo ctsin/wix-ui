@@ -1,4 +1,4 @@
-import * as React from "react";
+import * as React from 'react';
 
 export type PlayerNamesType = 'dailymotion' | 'facebook' | 'playable' | 'twitch' | 'vimeo' | 'youtube'
 
@@ -60,6 +60,15 @@ export interface IConfig {
   twitch?: ITwitchConfig;
   vimeo?: IVimeoConfig;
   youtube?: IYouTubeMotionConfig;
+}
+
+export interface ISDKConfig {
+  name: string;
+  url: string;
+  isLoaded?(sdk: any): boolean;
+  onReady?: string;
+  isRequireAllow?: boolean;
+  resolveRequire?(sdk: any): any;
 }
 
 export interface IEventEmitter {

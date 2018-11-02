@@ -13,15 +13,21 @@ import {
   VerifierType,
   IYoutubePlayerAPI,
   IYouTubeMotionConfig,
+  ISDKConfig,
 } from '../types';
 import styles from '../Video.st.css';
 
-const SDK_URL = 'https://www.youtube.com/iframe_api';
-const SDK_GLOBAL = 'YT';
-const SDK_READY = 'onYouTubeIframeAPIReady';
 const MATCH_URL = /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})/;
 
 export const verifier: VerifierType = url => isString(url) && MATCH_URL.test(url);
+
+const SDKConfig: ISDKConfig = {
+  name: 'YT',
+  url: 'https://www.youtube.com/iframe_api',
+  onReady: 'onYouTubeIframeAPIReady',
+  isLoaded: YT => !!YT.loaded,
+  isRequireAllow: false,
+};
 
 const mapPropsToPlayer: IPropsToPlayer = {
   src: instance => instance._reload(),
@@ -75,7 +81,7 @@ class YouTubePlayer extends React.PureComponent<IYouTubeProps> {
   }
 
   componentDidMount() {
-    getSDK(SDK_URL, SDK_GLOBAL, SDK_READY, YT => !!YT.loaded)
+    getSDK(SDKConfig)
       .then(this.initPlayer)
       .catch(error => {
         this.props.onError(error);

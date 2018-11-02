@@ -147,10 +147,8 @@ export default function playerHOC(
       return Promise.resolve();
     }
 
-    public getVolume(): Promise<void> {
-      this._callPlayer(mapMethodsToPlayer.getVolume);
-
-      return Promise.resolve();
+    public getVolume(): string | number {
+      return this._callPlayer(mapMethodsToPlayer.getVolume) || 0;
     }
 
     public setVolume(fraction: number): void {

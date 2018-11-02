@@ -13,15 +13,21 @@ import {
   VerifierType,
   IDailyMotionPlayerAPI,
   IDailyMotionConfig,
+  ISDKConfig,
 } from '../types';
 import styles from '../Video.st.css';
 
-const SDK_URL = 'https://api.dmcdn.net/all.js';
-const SDK_GLOBAL = 'DM';
-const SDK_READY = 'dmAsyncInit';
 const MATCH_URL = /^(?:(?:https?):)?(?:\/\/)?(?:www\.)?(?:(?:dailymotion\.com(?:\/embed)?\/video)|dai\.ly)\/([a-zA-Z0-9]+)(?:_[\w_-]+)?$/;
 
 export const verifier: VerifierType = url => isString(url) && MATCH_URL.test(url);
+
+const SDKConfig: ISDKConfig = {
+  name: 'DM',
+  url: 'https://api.dmcdn.net/all.js',
+  onReady: 'dmAsyncInit',
+  isLoaded: DM => !!DM.player,
+  isRequireAllow: false,
+};
 
 const mapPropsToPlayer: IPropsToPlayer = {
   src: instance => instance._reload(),
@@ -69,7 +75,7 @@ class DailyMotionPlayer extends React.PureComponent<IDailyMotionProps> {
   }
 
   componentDidMount() {
-    getSDK(SDK_URL, SDK_GLOBAL, SDK_READY, DM => DM.player)
+    getSDK(SDKConfig)
       .then(this.initPlayer)
       .catch(error => {
         this.props.onError(error);

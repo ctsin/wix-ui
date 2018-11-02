@@ -1,16 +1,50 @@
 import * as loadScript from 'load-script';
+import {ISDKConfig} from '../types';
 
 const stack = {};
 
-export function getSDK(
-  url: string,
-  sdkGlobal: string,
-  sdkReady: string | null = null,
-  isSDKLoaded: Function = () => true
-): Promise<any> {
+const loadSDK = (name, url, onLoaded, onError, onReady) => {
+  loadScript(url, err => {
+    if (err) {
+      onError(err);
+    }
 
-  if (window[sdkGlobal] && isSDKLoaded(window[sdkGlobal])) {
-    return Promise.resolve(window[sdkGlobal])
+    if (onReady) {
+      const previousOnReady = window[onReady];
+
+      window[onReady] = () => {
+        if (previousOnReady) {
+          previousOnReady();
+        }
+        onLoaded(window[name])
+      }
+    } else {
+      onLoaded(window[name]);
+    }
+  })
+};
+
+const requireSDK = (name, url, onLoaded, onError, resolveRequire) => {
+  // @ts-ignore
+  window.require([url], sdk => {
+    window[name] = resolveRequire(sdk);
+    onLoaded(window[name])
+  }, err => {
+    onError(err);
+  })
+};
+
+export function getSDK({
+  name,
+  url,
+  onReady,
+  isLoaded,
+  isRequireAllow,
+  resolveRequire,
+}: ISDKConfig): Promise<any> {
+
+  if (window[name] && isLoaded && isLoaded(window[name])) {
+    return Promise.resolve(window[name])
   }
 
   return new Promise((resolve, reject) => {
@@ -26,35 +60,11 @@ export function getSDK(
       stack[url].forEach(resolveItem => resolveItem(sdk))
     };
 
-    if (sdkReady) {
-      const previousOnReady = window[sdkReady];
-
-      window[sdkReady] = () => {
-        if (previousOnReady) {
-          previousOnReady();
-        }
-        onLoaded(window[sdkGlobal])
-      }
+    // @ts-ignore
+    if (isRequireAllow && typeof window.define === 'function' && window.define.amd) {
+      requireSDK(name, url, onLoaded, reject, resolveRequire);
+    } else {
+      loadSDK(name, url, onLoaded, reject, onReady);
     }
-
-    loadScript(url, err => {
-      if (err) {
-        reject(err);
-      }
-      if (!sdkReady) {
-
-        // @ts-ignore
-        if (!window[sdkGlobal] && "function" === typeof define && define.amd) {
-          // @ts-ignore
-          require([url], player => {
-            window[sdkGlobal] = { Player: player };
-            onLoaded(window[sdkGlobal])
-          });
-        } else {
-          onLoaded(window[sdkGlobal])
-        }
-      }
-    })
-
   })
 }

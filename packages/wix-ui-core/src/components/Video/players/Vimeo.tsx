@@ -12,15 +12,21 @@ import {
   IMethodsToPlayer,
   VerifierType,
   IVimeoPlayerAPI,
-  IVimeoConfig
+  IVimeoConfig,
+  ISDKConfig
 } from '../types';
 import styles from '../Video.st.css';
 
-const SDK_URL = 'https://player.vimeo.com/api/player.js';
-const SDK_GLOBAL = 'Vimeo';
 const MATCH_URL = /vimeo\.com\/.+/;
 
 export const verifier: VerifierType = url => isString(url) && MATCH_URL.test(url);
+
+const SDKConfig: ISDKConfig = {
+  name: 'Vimeo',
+  url: 'https://player.vimeo.com/api/player.js',
+  isRequireAllow: true,
+  resolveRequire: sdk => ({Player: sdk}),
+};
 
 const mapPropsToPlayer: IPropsToPlayer = {
   src: instance => instance._reload(),
@@ -76,7 +82,7 @@ class VimeoPlayer extends React.PureComponent<IVimeoProps> {
   }
 
   componentDidMount() {
-    getSDK(SDK_URL, SDK_GLOBAL)
+    getSDK(SDKConfig)
       .then(this.initPlayer)
       .catch(error => {
         this.props.onError(error);

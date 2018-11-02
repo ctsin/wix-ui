@@ -2,7 +2,6 @@ import * as React from 'react';
 import {EventEmitter} from 'eventemitter3';
 import isString = require('lodash/isString');
 import isArray = require('lodash/isArray');
-import noop = require('lodash/noop');
 import {create, VIDEO_EVENTS, ENGINE_STATES} from 'playable';
 
 import {EVENTS} from '../constants';
@@ -17,7 +16,6 @@ import {
   IPlayableConfig,
 } from '../types';
 import styles from '../Video.st.css';
-import {getSDK} from "../utils";
 
 const MATCH_URL = /\.(mp4|og[gv]|webm|mov|m4v)($|\?)/i;
 

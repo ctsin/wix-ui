@@ -14,15 +14,21 @@ import {
   VerifierType,
   ITwitchPlayerAPI,
   ITwitchConfig,
+  ISDKConfig,
 } from '../types';
 import styles from '../Video.st.css';
 
-const SDK_URL = 'https://player.twitch.tv/js/embed/v1.js';
-const SDK_GLOBAL = 'Twitch';
 const MATCH_VIDEO_URL = /(?:www\.|go\.)?twitch\.tv\/videos\/(\d+)($|\?)/;
 const MATCH_CHANNEL_URL = /(?:www\.|go\.)?twitch\.tv\/([a-z0-9_]+)($|\?)/;
 
 export const verifier: VerifierType = url => isString(url) && (MATCH_VIDEO_URL.test(url) || MATCH_CHANNEL_URL.test(url));
+
+const SDKConfig: ISDKConfig = {
+  name: 'Twitch',
+  url: 'https://player.twitch.tv/js/embed/v1.js',
+  isRequireAllow: true,
+  resolveRequire: sdk => ({Player: sdk.PlayerEmbed}),
+};
 
 const mapPropsToPlayer: IPropsToPlayer = {
   src: instance => instance._reload(),
@@ -70,7 +76,7 @@ class TwitchPlayer extends React.PureComponent<ITwitchProps> {
   }
 
   componentDidMount() {
-    getSDK(SDK_URL, SDK_GLOBAL)
+    getSDK(SDKConfig)
       .then(this.initPlayer)
       .catch(error => {
         this.props.onError(error);
